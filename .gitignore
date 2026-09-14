@@ -5,10 +5,11 @@ __pycache__/
 venv/
 env/
 
-# Environment / secrets
 .env
 *.env
 
-# OS
+*.local.yml
+alertmanager/secrets.yml
+
 .DS_Store
 Thumbs.db

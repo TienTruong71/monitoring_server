@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n $VERSION ]];then
-    export VERSION=1.6.1
+    export VERSION=1.12.1
 fi
 wget https://github.com/prometheus/node_exporter/releases/download/v$VERSION/node_exporter-$VERSION.linux-amd64.tar.gz
 tar xvfz node_exporter-*.*-amd64.tar.gz

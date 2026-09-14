@@ -6,7 +6,9 @@ services:
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--web.config.file=/etc/prometheus/web.yml", "--web.enable-lifecycle"]
     volumes:
       - prometheus_data:/prometheus
-      - prometheus_config:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/web.yml:/etc/prometheus/web.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
     ports:
       - "9090:9090"
 
@@ -16,8 +18,9 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - alertmanager_config:/etc/alertmanager
       - alertmanager_data:/alertmanager
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/templates:/etc/alertmanager/templates:ro
 
   grafana:
     image: grafana/grafana:10.0.5
@@ -26,9 +29,9 @@ services:
       - "3000:3000"
     volumes:
       - grafana_storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
 volumes:
   prometheus_data:
-  prometheus_config:
-  alertmanager_config:
   alertmanager_data:
   grafana_storage:

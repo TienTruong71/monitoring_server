@@ -13,8 +13,6 @@ rule_files:
 
 scrape_configs:
   - job_name: "prometheus"
-    # Web UI Prometheus đã bật basic_auth (web.yml) nên self-scrape cũng cần auth.
-    # Dùng chung password_file với exporter (cùng giá trị), username = admin (khớp web.yml).
     basic_auth:
       username: "admin"
       password_file: /etc/prometheus/secrets/exporter_pass

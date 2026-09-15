@@ -13,13 +13,18 @@ rule_files:
 
 scrape_configs:
   - job_name: "prometheus"
+    # Web UI Prometheus đã bật basic_auth (web.yml) nên self-scrape cũng cần auth.
+    # Dùng chung password_file với exporter (cùng giá trị), username = admin (khớp web.yml).
+    basic_auth:
+      username: "admin"
+      password_file: /etc/prometheus/secrets/exporter_pass
     static_configs:
       - targets: ["localhost:9090"]
 
   - job_name: "node-finepro"
     basic_auth:
       username: "node_exporter"
-      password: "admin@123"
+      password_file: /etc/prometheus/secrets/exporter_pass
     static_configs:
       - targets: ["192.168.160.76:9100"]
         labels: { hostname: "fedev",      env: "finepro" }
@@ -44,13 +49,13 @@ scrape_configs:
   - job_name: "node-vcast"
     basic_auth:
       username: "node_exporter"
-      password: "admin@123"
+      password_file: /etc/prometheus/secrets/exporter_pass
     static_configs:
       - targets: ["192.168.8.61:9100"]
         labels: { hostname: "fedev",        env: "vcast" }
       - targets: ["192.168.8.62:9100"]
         labels: { hostname: "bedev",        env: "vcast" }
-      - targets: ["192.168.8.63:9100"]
+      - targets: ["192.168.8.63:9101"]
         labels: { hostname: "mcrservice",   env: "vcast" }
       - targets: ["192.168.8.64:9100"]
         labels: { hostname: "data",         env: "vcast" }

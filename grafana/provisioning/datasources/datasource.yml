@@ -9,5 +9,6 @@ datasources:
     basicAuth: true
     basicAuthUser: admin
     secureJsonData:
-      basicAuthPassword: admin@123
+      # Grafana đọc biến env native; PROM_WEB_PASS lấy từ .env
+      basicAuthPassword: ${PROM_WEB_PASS}
     editable: true

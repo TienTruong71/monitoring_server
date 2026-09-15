@@ -31,6 +31,10 @@ EOF
     NODE_EXPORTER_ARGS="--web.config.file=/etc/node_exporter/web-config.yml"
 fi
 
+if [[ -n $LISTEN_ADDRESS ]];then
+    NODE_EXPORTER_ARGS="$NODE_EXPORTER_ARGS --web.listen-address=$LISTEN_ADDRESS"
+fi
+
 cat << EOF > /etc/systemd/system/node_exporter.service
 [Unit]
 Description=Node Exporter

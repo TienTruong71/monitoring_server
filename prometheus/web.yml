@@ -1,5 +1,0 @@
-# Bảo vệ giao diện web Prometheus (:9090) bằng basic_auth.
-# Sinh hash bằng: python hashpw.py <username> <password>
-# rồi thay dòng dưới (định dạng: "  <username>: <bcrypt_hash>")
-basic_auth_users:
-  admin: $2y$12$6KF4iW9ZnuAG0Ibu1oiNReo.N8P8ICW0s3LE4oU4jCCFPvB/GbSn6

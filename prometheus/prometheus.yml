@@ -32,7 +32,7 @@ scrape_configs:
         labels: { hostname: "mcrservice", env: "finepro" }
       - targets: ["192.168.160.80:9100"]
         labels: { hostname: "data",       env: "finepro" }
-      - targets: ["192.168.160.81:9100"]
+      - targets: ["192.168.160.81:9101"]   
         labels: { hostname: "gitlab",     env: "finepro" }
       - targets: ["192.168.160.95:9100"]
         labels: { hostname: "devserver",  env: "finepro" }

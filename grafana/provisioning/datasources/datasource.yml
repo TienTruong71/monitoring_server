@@ -9,5 +9,5 @@ datasources:
     basicAuth: true
     basicAuthUser: admin
     secureJsonData:
-      basicAuthPassword: CHANGE_ME
+      basicAuthPassword: admin@123
     editable: true

@@ -1,0 +1,13 @@
+{{ define "slack.mon.title" -}}
+{{ if eq .Status "firing" }}🔥 [FIRING:{{ .Alerts.Firing | len }}]{{ else }}✅ [RESOLVED]{{ end }} {{ .CommonLabels.alertname }}
+{{- end }}
+
+{{ define "slack.mon.text" -}}
+{{ range .Alerts -}}
+*Alert:* {{ .Labels.alertname }} — `{{ .Labels.severity }}`
+{{ if .Annotations.title }}*Title:* {{ .Annotations.title }}
+{{ end }}{{ if .Annotations.summary }}*Summary:* {{ .Annotations.summary }}
+{{ end }}{{ if .Annotations.description }}*Description:* {{ .Annotations.description }}
+{{ end }}*Instance:* `{{ .Labels.instance }}`{{ if .Labels.hostname }}  *Host:* `{{ .Labels.hostname }}`{{ end }}{{ if .Labels.env }}  *Env:* `{{ .Labels.env }}`{{ end }}
+{{ end -}}
+{{- end }}

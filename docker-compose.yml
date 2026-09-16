@@ -22,6 +22,7 @@ services:
       - alertmanager_data:/alertmanager
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - ./alertmanager/templates:/etc/alertmanager/templates:ro
+      - ./secrets:/etc/alertmanager/secrets:ro
 
   grafana:
     image: grafana/grafana:10.0.5

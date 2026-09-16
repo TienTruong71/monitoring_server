@@ -1,13 +1,6 @@
-#route:
-#  group_by: ['alertname']
-#  group_wait: 30s
-#  group_interval: 5m
-#  repeat_interval: 1h
-#  receiver: 'web.hook'
-#receivers:
-#  - name: 'web.hook'
-#    webhook_configs:
-#      - url: 'http://127.0.0.1:5001/'
+global:
+  slack_api_url_file: /etc/alertmanager/secrets/slack_url
+
 inhibit_rules:
   - source_match:
       severity: 'critical'
@@ -16,20 +9,32 @@ inhibit_rules:
     equal: ['alertname', 'dev', 'instance']
 
 route:
-
-  receiver: 'null'
+  receiver: 'slack-warning'      
+  group_by: ['alertname', 'instance']
   group_wait: 15s
   group_interval: 1m
-  repeat_interval: 2m
+  repeat_interval: 4h            
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: 'slack-critical'
 
 receivers:
-- name: 'null'
-# - name: 'telegram'
-#   telegram_configs:
-#   - bot_token: 'PUT_REAL_BOT_TOKEN'
-#     api_url: https://api.telegram.org
-#     chat_id: 123456789          #
-#     message: '{{ template "telegram.yucca.message" . }}'
+- name: 'slack-critical'
+  slack_configs:
+  - channel: '#alerts'
+    send_resolved: true
+    title: '{{ template "slack.mon.title" . }}'
+    text: '{{ template "slack.mon.text" . }}'
+    color: 'danger'
 
-# templates:
-# - '/etc/alertmanager/templates/telegram.tmpl'
+- name: 'slack-warning'
+  slack_configs:
+  - channel: '#alerts'
+    send_resolved: true
+    title: '{{ template "slack.mon.title" . }}'
+    text: '{{ template "slack.mon.text" . }}'
+    color: 'warning'
+
+templates:
+- '/etc/alertmanager/templates/slack.tmpl'

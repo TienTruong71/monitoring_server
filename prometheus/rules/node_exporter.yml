@@ -7,58 +7,58 @@ groups:
     labels:
       severity: critical
     annotations:
-      title: Node {{ $labels.instance }} is down
-      description: Failed to scrape {{ $labels.job }} on {{ $labels.instance }} for more than 1 minutes. Node seems down.
-  # Alert if any node has a CPU usage above 80% for more than 5 minutes
+      title: "Node {{ $labels.instance }} is down / Máy chủ {{ $labels.instance }} đã ngừng"
+      description: "[EN] Failed to scrape {{ $labels.job }} on {{ $labels.instance }} for more than 1 minute. Node seems down.\n[VI] Không thu được dữ liệu từ {{ $labels.job }} trên {{ $labels.instance }} quá 1 phút. Máy chủ có vẻ đã ngừng hoạt động."
+
   - alert: HighCPUUsage
     expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
     for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "High CPU usage on {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has a CPU usage of {{ $value }}% for more than 5 minutes"
+      summary: "High CPU usage on {{ $labels.instance }} / CPU cao trên {{ $labels.instance }}"
+      description: "[EN] {{ $labels.instance }} has CPU usage of {{ $value | printf \"%.1f\" }}% for more than 5 minutes.\n[VI] {{ $labels.instance }} có mức sử dụng CPU {{ $value | printf \"%.1f\" }}% liên tục quá 5 phút."
 
-  # Alert if any node has a RAM usage above 90% for more than 5 minutes
   - alert: HighRAMUsage
     expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
     for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "High RAM usage on {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has a RAM usage of {{ $value }}% for more than 5 minutes"
+      summary: "High RAM usage on {{ $labels.instance }} / RAM cao trên {{ $labels.instance }}"
+      description: "[EN] {{ $labels.instance }} has RAM usage of {{ $value | printf \"%.1f\" }}% for more than 5 minutes.\n[VI] {{ $labels.instance }} có mức sử dụng RAM {{ $value | printf \"%.1f\" }}% liên tục quá 5 phút."
 
-  # Alert if any node has a disk usage above 80% for more than 5 minutes
   - alert: HighDiskUsage
     expr: node_filesystem_avail_bytes / node_filesystem_size_bytes * 100 < 20
     for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "High disk usage on {{ $labels.instance }} ({{ $labels.device }})"
-      description: "{{ $labels.instance }} has a disk usage of {{ $value }}% for more than 5 minutes on device {{ $labels.device }}"
+      summary: "Low disk space on {{ $labels.instance }} ({{ $labels.device }}) / Đĩa sắp đầy trên {{ $labels.instance }} ({{ $labels.device }})"
+      description: "[EN] {{ $labels.instance }} has only {{ $value | printf \"%.1f\" }}% free space left on {{ $labels.device }} (used > 80%) for more than 5 minutes.\n[VI] {{ $labels.instance }} chỉ còn {{ $value | printf \"%.1f\" }}% dung lượng trống trên {{ $labels.device }} (đã dùng > 80%) liên tục quá 5 phút."
 
-# Network
 - name: network
   rules:
-  - record: node_network_receive_bytes_total_rate
-    expr: rate(node_network_receive_bytes_total[5m])
-  - record: node_network_transmit_bytes_total_rate
-    expr: rate(node_network_transmit_bytes_total[5m])
-  - alert: NetworkReceiveHigh
-    expr: node_network_receive_bytes_total_rate > 1000000
-    for: 10m
+  - alert: NetworkTrafficSpike
+    expr: |
+      (
+        rate(node_network_receive_bytes_total[5m])
+        > 5 * avg_over_time(rate(node_network_receive_bytes_total[5m])[1h:5m])
+      )
+      and
+      rate(node_network_receive_bytes_total[5m]) > 10000000
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Abnormal inbound traffic spike on {{ $labels.instance }} — possible DDoS / Đột biến lưu lượng vào bất thường trên {{ $labels.instance }} — nghi DDoS"
+      description: "[EN] Inbound traffic on {{ $labels.device }} is >5x the 1h average and above 10 MB/s (current: {{ $value | humanize }}B/s). Possible DDoS or traffic anomaly.\n[VI] Lưu lượng vào trên {{ $labels.device }} cao gấp >5 lần mức trung bình 1 giờ và vượt 10 MB/s (hiện tại: {{ $value | humanize }}B/s). Có thể đang bị DDoS hoặc bất thường lưu lượng."
+
+  - alert: HighConnectionCount
+    expr: node_netstat_Tcp_CurrEstab > 5000
+    for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "High network receive rate (instance {{ $labels.instance }})"
-      description: "Network receive rate is above 1 MB/s for more than 10 minutes (current value: {{ $value }})"
-  - alert: NetworkTransmitHigh
-    expr: node_network_transmit_bytes_total_rate > 1000000
-    for: 10m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High network transmit rate (instance {{ $labels.instance }})"
-      description: "Network transmit rate is above 1 MB/s for more than 10 minutes (current value: {{ $value }})"
+      summary: "High TCP connection count on {{ $labels.instance }} — possible connection flood / Số kết nối TCP cao trên {{ $labels.instance }} — nghi flood kết nối"
+      description: "[EN] {{ $labels.instance }} has {{ $value }} established TCP connections for more than 5 minutes. Possible connection-flood DDoS.\n[VI] {{ $labels.instance }} có {{ $value }} kết nối TCP đang mở liên tục quá 5 phút. Có thể bị tấn công flood kết nối."

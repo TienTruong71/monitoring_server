@@ -53,12 +53,10 @@ scrape_configs:
         labels: { hostname: "fedev",        env: "vcast" }
       - targets: ["192.168.8.62:9100"]
         labels: { hostname: "bedev",        env: "vcast" }
-      - targets: ["192.168.8.63:9101"]
+      - targets: ["192.168.8.63:9200"]
         labels: { hostname: "mcrservice",   env: "vcast" }
       - targets: ["192.168.8.64:9100"]
         labels: { hostname: "data",         env: "vcast" }
-      - targets: ["192.168.8.66:9100"]
-        labels: { hostname: "load-balancer", env: "vcast" }
       - targets: ["192.168.8.67:9100"]
         labels: { hostname: "apifinetags",  env: "vcast" }
     relabel_configs:

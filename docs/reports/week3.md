@@ -17,8 +17,18 @@
 
 ## 2. CloudWatch – metric mặc định và Detailed Monitoring
 
-1. **EC2 → chọn web-1, web-2, db-1 → Actions → Monitor and troubleshoot → Manage detailed monitoring → Enable**.
-2. Chu kỳ metric giảm từ 5 phút xuống **1 phút** (có tính phí theo số metric).
+1. **EC2 → Instances → chỉ tick 1 instance (web-1) → Actions → Monitor and troubleshoot → Manage detailed monitoring → tick Enable → Confirm**. Mục này bị mờ khi chọn nhiều instance cùng lúc, nên lặp lại lần lượt cho web-2 và db-1.
+2. Cách nhanh hơn: bật cho cả 3 máy bằng một lệnh trong CloudShell:
+
+   ```bash
+   aws ec2 monitor-instances --instance-ids <id-web-1> <id-web-2> <id-db-1>
+   aws ec2 describe-instances --instance-ids <id-web-1> <id-web-2> <id-db-1> \
+     --query "Reservations[].Instances[].[Tags[?Key=='Name']|[0].Value,Monitoring.State]" --output table
+   ```
+
+   Kết quả cần là `enabled` (trong lúc chờ có thể hiện `pending`).
+3. Chu kỳ metric giảm từ 5 phút xuống **1 phút** (có tính phí theo số metric).
+4. Nếu Learner Lab chặn quyền (lỗi `not authorized to perform: ec2:MonitorInstances`), giữ Basic Monitoring (5 phút) và ghi vào mục 11. RAM/Disk vẫn lấy theo chu kỳ 60s qua CloudWatch Agent ở mục 3.
 
 > **[ẢNH 3.1] Bật Detailed Monitoring**
 > - Chụp tại: **EC2 → Instances → web-1 → tab Monitoring**
@@ -244,18 +254,92 @@ Ghi thời điểm bắt đầu (lệnh `date`), thời điểm tin Slack đến
 
 ![Ảnh 3.16](images/w3-16-git-no-secrets.png)
 
-## 9. Tự động hóa / IaC (nếu thực hiện)
+## 9. Tự động hóa hạ tầng bằng CloudFormation (IaC)
 
-- Template CloudFormation `infra/stack.yml` tạo VPC, subnet, IGW, route table, 2 SG, 4 EC2 (LabInstanceProfile, tag, user data cài node_exporter + CloudWatch Agent + Docker).
-- Triển khai: `aws cloudformation deploy --template-file infra/stack.yml --stack-name prom-monitoring --parameter-overrides MyIp=<ip>/32 Owner=<mssv>`
-- Xóa toàn bộ sau buổi lab: `aws cloudformation delete-stack --stack-name prom-monitoring`
+Tuần 1–3, hạ tầng được tạo thủ công trên console nên mất nhiều thời gian và dễ sai sót (quên tag `Monitoring=node`, quên gắn IAM role, quên hop limit 2). Template [`infra/stack.yml`](../../infra/stack.yml) mô tả lại toàn bộ hạ tầng đó dưới dạng mã. Chỉ cần một lệnh để dựng lại từ đầu và một lệnh để xóa sạch sau buổi lab.
+
+### 9.1 Nội dung template
+
+| Nhóm | Tài nguyên | Ghi chú |
+|---|---|---|
+| Mạng | VPC `10.20.0.0/16`, public subnet `10.20.1.0/24`, Internet Gateway, route table | Tách riêng khỏi VPC mặc định |
+| Bảo mật | `prom-monitor-sg`: 22, 2404, 9090 chỉ từ `MyIp` | Giống `monitor-sg` |
+| | `prom-target-sg`: 22 từ `MyIp`; 9100 chỉ từ `prom-monitor-sg` | Giống `sg-target` |
+| Launch template | Monitor: t3.medium, 20 GB gp3, IMDSv2 bắt buộc, **hop limit 2** | User data cài Docker, Compose, Git |
+| | Target: t3.micro, 8 GB gp3, Detailed Monitoring theo tham số | User data cài node_exporter có basic auth, CloudWatch Agent (cấu hình giống mục 3.2), stress-ng |
+| EC2 | `monitor`, `web-1`, `web-2`, `db-1` | Đều gắn `LabInstanceProfile`, tag `Project`, `Owner`; 3 target có tag `Monitoring` |
+| Outputs | Public IP, URL Grafana/Prometheus, instance ID 3 target | Dùng cho bước kiểm tra |
+
+Tham số:
+
+| Tham số | Mặc định | Ý nghĩa |
+|---|---|---|
+| `MyIp` | (bắt buộc) | IP cá nhân dạng `x.x.x.x/32` |
+| `ExporterBasicAuth` | (bắt buộc, ẩn) | Chuỗi `node_exporter: $2b$12$...` sinh từ `hashpw.py` (mục 3.1 tuần 2) |
+| `Owner` | `22110245` | Tag Owner |
+| `KeyName` | `vockey` | Key pair của Learner Lab |
+| `MonitoringTag` | `node` | Giá trị tag mà `ec2_sd_configs` lọc |
+| `DetailedMonitoring` | `false` | `true` để bật chu kỳ 1 phút |
+| `UbuntuAmi` | SSM `ubuntu/server/24.04/.../ami-id` | Luôn lấy AMI Ubuntu mới nhất, không cần sửa ID |
+
+Template đã được kiểm tra cú pháp bằng `cfn-lint` (không có lỗi).
+
+### 9.2 Triển khai
+
+> **Lưu ý:** Khi hệ thống thủ công vẫn đang chạy, Prometheus cũ cũng lọc tag `Monitoring=node` trong cùng region. Nếu giữ mặc định, nó sẽ phát hiện 3 target mới nhưng không scrape được (khác VPC) và bắn `NodeDown` lên Slack. Vì vậy khi chỉ triển khai để minh chứng, đặt `MonitoringTag=node-iac`. Khi dùng stack này thay thế hẳn hệ thống cũ thì stop 4 máy cũ trước và giữ `node`.
+
+1. Mở **CloudShell → Actions → Upload file**, chọn `infra/stack.yml`.
+2. Kiểm tra template trên AWS:
+   ```bash
+   aws cloudformation validate-template --template-body file://stack.yml
+   ```
+3. Triển khai (thay IP và chuỗi bcrypt; chuỗi bcrypt để trong **nháy đơn**):
+   ```bash
+   aws cloudformation deploy \
+     --template-file stack.yml \
+     --stack-name prom-monitoring \
+     --parameter-overrides \
+       MyIp=<ip-ca-nhan>/32 \
+       'ExporterBasicAuth=node_exporter: $2b$12$...' \
+       MonitoringTag=node-iac \
+     --tags Project=prom-monitoring Owner=22110245
+   ```
+   Lệnh chờ đến khi stack ở trạng thái `CREATE_COMPLETE` (khoảng 3–4 phút).
+4. Xem output:
+   ```bash
+   aws cloudformation describe-stacks --stack-name prom-monitoring --query "Stacks[0].Outputs" --output table
+   ```
+5. Kiểm tra user data đã chạy xong trên một target (đợi thêm 2–3 phút sau khi stack xong):
+   ```bash
+   ssh -i labsuser.pem ubuntu@<Web1PublicIp>
+   systemctl is-active node_exporter amazon-cloudwatch-agent
+   curl -s -o /dev/null -w "%{http_code}\n" localhost:9100/metrics
+   ```
+   Kết quả mong đợi: hai dòng `active` và mã `401` (basic auth hoạt động).
+6. Trên máy `monitor` mới: clone repo, tạo `secrets/`, `.env`, `prometheus/web.yml` và chạy `docker compose up -d` như mục 4 tuần 2. Docker đã được user data cài sẵn. Nếu dùng `MonitoringTag=node-iac` thì sửa giá trị filter `tag:Monitoring` trong `prometheus/prometheus.yml` thành `node-iac` trước khi chạy.
 
 > **[ẢNH 3.17] CloudFormation stack**
 > - Chụp tại: **CloudFormation → Stacks → prom-monitoring → tab Resources**
-> - Phải thấy: trạng thái **CREATE_COMPLETE**, danh sách tài nguyên
+> - Phải thấy: trạng thái **CREATE_COMPLETE**, danh sách tài nguyên (VPC, Subnet, SG, LaunchTemplate, 4 Instance…)
 > - Lưu file: `images/w3-17-cloudformation.png`
 
 ![Ảnh 3.17](images/w3-17-cloudformation.png)
+
+> **[ẢNH 3.18] Outputs và target do user data cài sẵn**
+> - Chụp tại: **CloudFormation → prom-monitoring → tab Outputs**, kèm terminal SSH vào web-1 mới chạy lệnh ở bước 5
+> - Phải thấy: Public IP và URL; `active` `active` `401`
+> - Lưu file: `images/w3-18-cfn-outputs.png`
+
+![Ảnh 3.18](images/w3-18-cfn-outputs.png)
+
+### 9.3 Dọn dẹp
+
+```bash
+aws cloudformation delete-stack --stack-name prom-monitoring
+aws cloudformation wait stack-delete-complete --stack-name prom-monitoring
+```
+
+Xóa stack sẽ xóa toàn bộ tài nguyên đã tạo (EC2, EBS, SG, VPC), tránh tốn credit Learner Lab. Các alarm và dashboard CloudWatch tạo bằng tay ở mục 4–5 không nằm trong stack nên không bị ảnh hưởng.
 
 ## 10. Kết quả tuần 3
 

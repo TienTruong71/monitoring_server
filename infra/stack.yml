@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Prometheus + Grafana monitoring lab - VPC, security groups, 1 monitor and 3 target EC2 instances
+
+Parameters:
+  MyIp:
+    Type: String
+    Description: Your public IP in CIDR form, e.g. 1.2.3.4/32
+    AllowedPattern: ^(\d{1,3}\.){3}\d{1,3}/32$
+  Owner:
+    Type: String
+    Default: "22110245"
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+  ExporterBasicAuth:
+    Type: String
+    NoEcho: true
+    Description: "Output of hashpw.py, e.g. node_exporter: $2b$12$..."
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1d
+  MonitoringTag:
+    Type: String
+    Default: node
+    Description: Value of the Monitoring tag that Prometheus ec2_sd_configs filters on
+  DetailedMonitoring:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  UbuntuAmi:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - { Key: Name, Value: prom-monitoring-vpc }
+        - { Key: Project, Value: prom-monitoring }
+        - { Key: Owner, Value: !Ref Owner }
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - { Key: Name, Value: prom-monitoring-igw }
+        - { Key: Project, Value: prom-monitoring }
+
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.1.0/24
+      AvailabilityZone: !Ref AvailabilityZone
+      MapPublicIpOnLaunch: true
+      Tags:
+        - { Key: Name, Value: prom-monitoring-public }
+        - { Key: Project, Value: prom-monitoring }
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - { Key: Name, Value: prom-monitoring-public-rt }
+        - { Key: Project, Value: prom-monitoring }
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  MonitorSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: prom-monitor-sg
+      GroupDescription: Monitor host - SSH, Grafana, Prometheus from my IP only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref MyIp, Description: SSH }
+        - { IpProtocol: tcp, FromPort: 2404, ToPort: 2404, CidrIp: !Ref MyIp, Description: Grafana }
+        - { IpProtocol: tcp, FromPort: 9090, ToPort: 9090, CidrIp: !Ref MyIp, Description: Prometheus }
+      Tags:
+        - { Key: Name, Value: prom-monitor-sg }
+        - { Key: Project, Value: prom-monitoring }
+
+  TargetSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: prom-target-sg
+      GroupDescription: Targets - SSH from my IP, node_exporter from monitor only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref MyIp, Description: SSH }
+        - { IpProtocol: tcp, FromPort: 9100, ToPort: 9100, SourceSecurityGroupId: !Ref MonitorSg, Description: node_exporter }
+      Tags:
+        - { Key: Name, Value: prom-target-sg }
+        - { Key: Project, Value: prom-monitoring }
+
+  MonitorLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref UbuntuAmi
+        InstanceType: t3.medium
+        KeyName: !Ref KeyName
+        IamInstanceProfile: { Name: LabInstanceProfile }
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs: { VolumeSize: 20, VolumeType: gp3, DeleteOnTermination: true }
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash
+            set -eux
+            apt-get update
+            apt-get install -y docker.io docker-compose-v2 git
+            usermod -aG docker ubuntu
+            systemctl enable --now docker
+
+  TargetLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref UbuntuAmi
+        InstanceType: t3.micro
+        KeyName: !Ref KeyName
+        IamInstanceProfile: { Name: LabInstanceProfile }
+        Monitoring: { Enabled: !Ref DetailedMonitoring }
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs: { VolumeSize: 8, VolumeType: gp3, DeleteOnTermination: true }
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -eux
+            cd /tmp
+            V=1.12.1
+            wget -q https://github.com/prometheus/node_exporter/releases/download/v$V/node_exporter-$V.linux-amd64.tar.gz
+            tar xzf node_exporter-$V.linux-amd64.tar.gz
+            mv node_exporter-$V.linux-amd64/node_exporter /usr/local/bin/
+            rm -rf node_exporter-$V.linux-amd64*
+            mkdir -p /etc/node_exporter
+            cat > /etc/node_exporter/web-config.yml <<'EOF'
+            basic_auth_users:
+              ${ExporterBasicAuth}
+            EOF
+            cat > /etc/systemd/system/node_exporter.service <<'EOF'
+            [Unit]
+            Description=Node Exporter
+            After=network.target
+
+            [Service]
+            User=nobody
+            Group=nogroup
+            Type=simple
+            ExecStart=/usr/local/bin/node_exporter --web.config.file=/etc/node_exporter/web-config.yml
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+            systemctl daemon-reload
+            systemctl enable --now node_exporter
+
+            wget -q https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+            dpkg -i amazon-cloudwatch-agent.deb
+            rm -f amazon-cloudwatch-agent.deb
+            cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json <<'EOF'
+            {
+              "agent": { "metrics_collection_interval": 60, "run_as_user": "root" },
+              "metrics": {
+                "namespace": "CWAgent",
+                "append_dimensions": { "InstanceId": "${!aws:InstanceId}" },
+                "metrics_collected": {
+                  "mem":  { "measurement": ["mem_used_percent"] },
+                  "disk": { "measurement": ["used_percent"], "resources": ["/"], "ignore_file_system_types": ["tmpfs", "overlay", "squashfs"] },
+                  "cpu":  { "measurement": ["cpu_usage_idle"], "totalcpu": true }
+                }
+              }
+            }
+            EOF
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json
+
+            apt-get update
+            apt-get install -y stress-ng
+
+  Monitor:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MonitorLaunchTemplate
+        Version: !GetAtt MonitorLaunchTemplate.LatestVersionNumber
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref MonitorSg]
+      Tags:
+        - { Key: Name, Value: monitor }
+        - { Key: Project, Value: prom-monitoring }
+        - { Key: Owner, Value: !Ref Owner }
+
+  Web1:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref TargetLaunchTemplate
+        Version: !GetAtt TargetLaunchTemplate.LatestVersionNumber
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref TargetSg]
+      Tags:
+        - { Key: Name, Value: web-1 }
+        - { Key: Monitoring, Value: !Ref MonitoringTag }
+        - { Key: Project, Value: prom-monitoring }
+        - { Key: Owner, Value: !Ref Owner }
+
+  Web2:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref TargetLaunchTemplate
+        Version: !GetAtt TargetLaunchTemplate.LatestVersionNumber
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref TargetSg]
+      Tags:
+        - { Key: Name, Value: web-2 }
+        - { Key: Monitoring, Value: !Ref MonitoringTag }
+        - { Key: Project, Value: prom-monitoring }
+        - { Key: Owner, Value: !Ref Owner }
+
+  Db1:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref TargetLaunchTemplate
+        Version: !GetAtt TargetLaunchTemplate.LatestVersionNumber
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref TargetSg]
+      Tags:
+        - { Key: Name, Value: db-1 }
+        - { Key: Monitoring, Value: !Ref MonitoringTag }
+        - { Key: Project, Value: prom-monitoring }
+        - { Key: Owner, Value: !Ref Owner }
+
+Outputs:
+  MonitorPublicIp:
+    Value: !GetAtt Monitor.PublicIp
+  GrafanaUrl:
+    Value: !Sub http://${Monitor.PublicIp}:2404
+  PrometheusUrl:
+    Value: !Sub http://${Monitor.PublicIp}:9090
+  Web1PublicIp:
+    Value: !GetAtt Web1.PublicIp
+  Web2PublicIp:
+    Value: !GetAtt Web2.PublicIp
+  Db1PublicIp:
+    Value: !GetAtt Db1.PublicIp
+  TargetInstanceIds:
+    Value: !Join [" ", [!Ref Web1, !Ref Web2, !Ref Db1]]

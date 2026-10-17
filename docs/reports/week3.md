@@ -325,12 +325,19 @@ Template đã được kiểm tra cú pháp bằng `cfn-lint` (không có lỗi)
 
 ![Ảnh 3.17](images/w3-17-cloudformation.png)
 
-> **[ẢNH 3.18] Outputs và target do user data cài sẵn**
-> - Chụp tại: **CloudFormation → prom-monitoring → tab Outputs**, kèm terminal SSH vào web-1 mới chạy lệnh ở bước 5
-> - Phải thấy: Public IP và URL; `active` `active` `401`
-> - Lưu file: `images/w3-18-cfn-outputs.png`
+> **[ẢNH 3.18] EC2 do stack tạo**
+> - Chụp tại: **EC2 → Instances**, ô tìm kiếm lọc `aws:cloudformation:stack-name = prom-monitoring`
+> - Phải thấy: 4 máy `monitor`, `web-1`, `web-2`, `db-1` trạng thái Running, đúng instance type (t3.medium / t3.micro), cột Private IP dạng `10.20.1.x`
+> - Lưu file: `images/w3-18-cfn-instances.png`
 
-![Ảnh 3.18](images/w3-18-cfn-outputs.png)
+![Ảnh 3.18](images/w3-18-cfn-instances.png)
+
+> **[ẢNH 3.19] Target được user data cài sẵn dịch vụ**
+> - Chụp tại: **terminal SSH vào web-1**, chạy 2 lệnh ở bước 5
+> - Phải thấy: hai dòng `active` (node_exporter, amazon-cloudwatch-agent); `curl` không kèm mật khẩu trả về **401**
+> - Lưu file: `images/w3-19-cfn-target-check.png`
+
+![Ảnh 3.19](images/w3-19-cfn-target-check.png)
 
 ### 9.3 Dọn dẹp
 
@@ -340,6 +347,13 @@ aws cloudformation wait stack-delete-complete --stack-name prom-monitoring
 ```
 
 Xóa stack sẽ xóa toàn bộ tài nguyên đã tạo (EC2, EBS, SG, VPC), tránh tốn credit Learner Lab. Các alarm và dashboard CloudWatch tạo bằng tay ở mục 4–5 không nằm trong stack nên không bị ảnh hưởng.
+
+> **[ẢNH 3.20] Stack đã được xóa**
+> - Chụp tại: **CloudFormation → Stacks**, bộ lọc trạng thái chọn **Deleted**
+> - Phải thấy: stack `prom-monitoring` ở trạng thái **DELETE_COMPLETE** kèm thời gian xóa
+> - Lưu file: `images/w3-20-cfn-deleted.png`
+
+![Ảnh 3.20](images/w3-20-cfn-deleted.png)
 
 ## 10. Kết quả tuần 3
 

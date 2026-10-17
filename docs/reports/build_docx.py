@@ -26,6 +26,36 @@ TABLE_BORDERS = (
     + "</w:tblBorders>"
 )
 
+CODE_FONT = '<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas" w:cs="Consolas" w:eastAsia="Consolas"/>'
+
+SOURCE_CODE_STYLE = (
+    '<w:style w:type="paragraph" w:customStyle="1" w:styleId="SourceCode">'
+    '<w:name w:val="Source Code"/><w:basedOn w:val="Normal"/><w:qFormat/>'
+    "<w:pPr>"
+    "<w:keepLines/>"
+    "<w:pBdr>"
+    + "".join(
+        f'<w:{side} w:val="single" w:sz="4" w:space="4" w:color="BFBFBF"/>'
+        for side in ("top", "left", "bottom", "right")
+    )
+    + "</w:pBdr>"
+    '<w:shd w:val="clear" w:color="auto" w:fill="F2F2F2"/>'
+    '<w:spacing w:before="120" w:after="120" w:line="240" w:lineRule="auto"/>'
+    '<w:ind w:left="113" w:right="113" w:firstLine="0"/>'
+    '<w:jc w:val="left"/>'
+    "</w:pPr>"
+    f'<w:rPr>{CODE_FONT}<w:color w:val="000000"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>'
+    "</w:style>"
+)
+
+VERBATIM_CHAR_STYLE = (
+    '<w:style w:type="character" w:customStyle="1" w:styleId="VerbatimChar">'
+    '<w:name w:val="Verbatim Char"/><w:basedOn w:val="DefaultParagraphFont"/>'
+    f'<w:rPr>{CODE_FONT}<w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/>'
+    '<w:shd w:val="clear" w:color="auto" w:fill="F2F2F2"/></w:rPr>'
+    "</w:style>"
+)
+
 
 def find_pandoc():
     found = shutil.which("pandoc")
@@ -81,6 +111,17 @@ def edit_styles(xml):
     return style_block(xml, "Table", solid_table)
 
 
+def replace_style(xml, style_id, new_block):
+    pattern = re.compile(r'<w:style [^>]*w:styleId="%s".*?</w:style>' % style_id, re.S)
+    xml = pattern.sub("", xml)
+    return xml.replace("</w:styles>", new_block + "</w:styles>")
+
+
+def edit_output_styles(xml):
+    xml = replace_style(xml, "SourceCode", SOURCE_CODE_STYLE)
+    return replace_style(xml, "VerbatimChar", VERBATIM_CHAR_STYLE)
+
+
 def edit_numbering(xml):
     def fix_level(m):
         lvl = m.group(0)
@@ -110,8 +151,9 @@ def main():
 
         result = subprocess.run(
             [pandoc, *inputs,
-             "-f", "markdown+lists_without_preceding_blankline+hard_line_breaks",
+             "-f", "markdown+lists_without_preceding_blankline+hard_line_breaks-implicit_figures",
              "-o", output,
+             "--syntax-highlighting=none",
              "--toc", "--toc-depth=2",
              "--resource-path", os.pathsep.join([".", ".."]),
              "--reference-doc", reference,
@@ -121,7 +163,7 @@ def main():
             sys.exit(result.stderr)
 
     out_path = os.path.join(HERE, output)
-    rewrite_zip(out_path, {"word/numbering.xml": edit_numbering})
+    rewrite_zip(out_path, {"word/numbering.xml": edit_numbering, "word/styles.xml": edit_output_styles})
     missing = sorted(set(re.findall(r"Could not fetch resource ([^\s:]+)", result.stderr)))
     print(f"written {out_path}")
     if missing:

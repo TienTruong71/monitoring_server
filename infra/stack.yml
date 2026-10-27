@@ -9,6 +9,10 @@ Parameters:
   Owner:
     Type: String
     Default: "22110245"
+  InstanceConnectCidr:
+    Type: String
+    Default: 18.206.107.24/29
+    Description: EC2 Instance Connect IP range for us-east-1 (browser SSH from the console)
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
     Default: vockey
@@ -97,6 +101,7 @@ Resources:
       VpcId: !Ref Vpc
       SecurityGroupIngress:
         - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref MyIp, Description: SSH }
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref InstanceConnectCidr, Description: EC2 Instance Connect }
         - { IpProtocol: tcp, FromPort: 2404, ToPort: 2404, CidrIp: !Ref MyIp, Description: Grafana }
         - { IpProtocol: tcp, FromPort: 9090, ToPort: 9090, CidrIp: !Ref MyIp, Description: Prometheus }
       Tags:
@@ -111,6 +116,7 @@ Resources:
       VpcId: !Ref Vpc
       SecurityGroupIngress:
         - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref MyIp, Description: SSH }
+        - { IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref InstanceConnectCidr, Description: EC2 Instance Connect }
         - { IpProtocol: tcp, FromPort: 9100, ToPort: 9100, SourceSecurityGroupId: !Ref MonitorSg, Description: node_exporter }
       Tags:
         - { Key: Name, Value: prom-target-sg }

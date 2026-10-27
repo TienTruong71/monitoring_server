@@ -300,6 +300,13 @@ curl -m 5 http://<public-ip-web-1>:9100/metrics
 
 *Hình 2.16: Truy cập 9100 từ Internet bị chặn*
 
+Có thể chạy lại cả 3 bước kiểm thử (PromQL `up{job="node-aws"}`, health check datasource Grafana, chặn cổng 9100) bằng [`scripts/verify_stack.sh`](../../scripts/verify_stack.sh) từ máy cá nhân:
+
+```bash
+PROM_PASS='<mat-khau-admin-prometheus>' GRAFANA_PASS='<mat-khau-admin-grafana>' \
+  ./scripts/verify_stack.sh <public-ip-monitor> <public-ip-web-1> <public-ip-web-2> <public-ip-db-1>
+```
+
 ## 6. Kết quả tuần 2
 
 | Hạng mục | Kết quả |

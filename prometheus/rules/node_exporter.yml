@@ -29,7 +29,7 @@ groups:
       description: "[EN] {{ $labels.instance }} has RAM usage of {{ $value | printf \"%.1f\" }}% for more than 5 minutes.\n[VI] {{ $labels.instance }} có mức sử dụng RAM {{ $value | printf \"%.1f\" }}% liên tục quá 5 phút."
 
   - alert: HighDiskUsage
-    expr: node_filesystem_avail_bytes / node_filesystem_size_bytes * 100 < 20
+    expr: node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} * 100 < 20
     for: 5m
     labels:
       severity: warning

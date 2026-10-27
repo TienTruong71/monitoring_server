@@ -3,9 +3,14 @@
 if [[ ! -n $VERSION ]];then
     export VERSION=1.12.1
 fi
-wget https://github.com/prometheus/node_exporter/releases/download/v$VERSION/node_exporter-$VERSION.linux-amd64.tar.gz
-tar xvfz node_exporter-*.*-amd64.tar.gz
-cd node_exporter-*.*-amd64
+case "$(uname -m)" in
+    x86_64)  ARCH=amd64 ;;
+    aarch64) ARCH=arm64 ;;
+    *) echo "unsupported architecture: $(uname -m)"; exit 1 ;;
+esac
+wget https://github.com/prometheus/node_exporter/releases/download/v$VERSION/node_exporter-$VERSION.linux-$ARCH.tar.gz
+tar xvfz node_exporter-$VERSION.linux-$ARCH.tar.gz
+cd node_exporter-$VERSION.linux-$ARCH
 mv node_exporter /usr/local/bin/
 # read -p "username : " username
 # read -sp "password : " password

@@ -11,3 +11,11 @@ datasources:
     secureJsonData:
       basicAuthPassword: ${PROM_WEB_PASS}
     editable: true
+
+  - name: CloudWatch
+    type: cloudwatch
+    access: proxy
+    jsonData:
+      authType: default
+      defaultRegion: us-east-1
+    editable: true

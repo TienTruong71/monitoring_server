@@ -168,6 +168,12 @@ for P in web-1:i-0167519b36beba67e web-2:i-085f1e764796e2136 db-1:i-023265ef4391
 done
 ```
 
+Vòng lặp trên viết cứng instance ID nên phải sửa lại mỗi lần dựng lại hạ tầng. [`scripts/create_cw_alarms.sh`](../../scripts/create_cw_alarms.sh) tạo topic SNS (kèm email subscription nếu truyền email), tự tìm target theo tag `Monitoring=node` giống `ec2_sd_configs` của Prometheus, rồi tạo 9 alarm:
+
+```bash
+./scripts/create_cw_alarms.sh <email-nhan-canh-bao>
+```
+
 ![Hình 3.7](images/w3-07-cw-alarms.png)
 
 *Hình 3.7: 9 CloudWatch Alarm ở trạng thái OK*

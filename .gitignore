@@ -17,3 +17,5 @@ alertmanager/secrets.yml
 
 .DS_Store
 Thumbs.db
+
+*.pem

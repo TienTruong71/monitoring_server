@@ -19,3 +19,5 @@ alertmanager/secrets.yml
 Thumbs.db
 
 *.pem
+*.tmp
+~$*

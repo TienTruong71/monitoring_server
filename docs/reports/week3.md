@@ -51,6 +51,13 @@ sudo dpkg -i amazon-cloudwatch-agent.deb
 sudo nano /opt/aws/amazon-cloudwatch-agent/bin/config.json
 ```
 
+Các bước 3.1–3.2 được gom vào [`scripts/install_cw_agent.sh`](../../scripts/install_cw_agent.sh): script kiểm tra IAM role qua IMDS trước khi cài, ghi `config.json` và chạy `fetch-config` trên một dòng.
+
+```bash
+scp -i labsuser.pem scripts/install_cw_agent.sh ubuntu@<public-ip-target>:~
+ssh -i labsuser.pem ubuntu@<public-ip-target> sudo ./install_cw_agent.sh
+```
+
 ### 3.2 Cấu hình `/opt/aws/amazon-cloudwatch-agent/bin/config.json`
 
 ```json

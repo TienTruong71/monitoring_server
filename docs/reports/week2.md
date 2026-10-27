@@ -1,7 +1,7 @@
 # Báo cáo Tuần 2 – Triển khai chức năng lõi trên AWS
 
 **Đề tài:** Hệ thống giám sát mã nguồn mở Prometheus + Grafana trên AWS (Nhóm: Infrastructure)
-**Thời gian:** ……/……/2026 – ……/……/2026
+**Thời gian:** 27/09/2026 – 02/10/2026
 **Thành viên:** Trương Thành Tiến – MSSV 22110245 · Lê Nguyễn Thiên Phúc – MSSV ………
 **Region:** us-east-1 · **Account ID:** 1574-3594-8217
 
@@ -338,14 +338,14 @@ PROM_PASS='<mat-khau-admin-prometheus>' GRAFANA_PASS='<mat-khau-admin-grafana>' 
 
 | Ngày | Thành viên | Công việc | Số giờ |
 |---|---|---|---|
-| ……/…… | Trương Thành Tiến | Tạo 4 EC2, kiểm tra EBS và giới hạn Learner Lab | 2 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Cấu hình Security Group (`monitor-sg`, `sg-target`), xử lý lỗi SSH/Instance Connect và quyền file key | 2 |
-| ……/…… | Trương Thành Tiến | Tạo bcrypt, cài node_exporter + basic auth trên web-1, web-2, db-1 | 2 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Cài Docker, clone repo bằng PAT, tạo secrets / `web.yml` / `.env`, chạy stack | 2.5 |
-| ……/…… | Trương Thành Tiến | Gắn LabInstanceProfile, đặt IMDS hop limit, gắn tag `Monitoring/Project/Owner`, kiểm tra Service Discovery và Targets | 2.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Kiểm thử Grafana datasource/dashboard, PromQL, kiểm tra port 9100 bị chặn | 2 |
-| ……/…… | Trương Thành Tiến | Kiểm thử Alertmanager (amtool, SSH tunnel), NodeDown → Slack firing/resolved | 1.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Chụp minh chứng, tổng hợp khó khăn, viết báo cáo tuần 2 | 1.5 |
+| 27/09/2026 | Trương Thành Tiến | Tạo 4 EC2, kiểm tra EBS và giới hạn Learner Lab | 2 |
+| 27/09/2026 | Lê Nguyễn Thiên Phúc | Cấu hình Security Group (`monitor-sg`, `sg-target`), xử lý lỗi SSH/Instance Connect và quyền file key | 2 |
+| 28/09/2026 | Trương Thành Tiến | Tạo bcrypt, cài node_exporter + basic auth trên web-1, web-2, db-1 | 2 |
+| 29/09/2026 | Lê Nguyễn Thiên Phúc | Cài Docker, clone repo bằng PAT, tạo secrets / `web.yml` / `.env`, chạy stack | 2.5 |
+| 29/09/2026 | Trương Thành Tiến | Gắn LabInstanceProfile, đặt IMDS hop limit, gắn tag `Monitoring/Project/Owner`, kiểm tra Service Discovery và Targets | 2.5 |
+| 30/09/2026 | Lê Nguyễn Thiên Phúc | Kiểm thử Grafana datasource/dashboard, PromQL, kiểm tra port 9100 bị chặn | 2 |
+| 01/10/2026 | Trương Thành Tiến | Kiểm thử Alertmanager (amtool, SSH tunnel), NodeDown → Slack firing/resolved | 1.5 |
+| 02/10/2026 | Lê Nguyễn Thiên Phúc | Chụp minh chứng, tổng hợp khó khăn, viết báo cáo tuần 2 | 1.5 |
 | | | **Tổng Trương Thành Tiến** | **8** |
 | | | **Tổng Lê Nguyễn Thiên Phúc** | **8** |
 

@@ -32,22 +32,22 @@ Chụp đúng trang ghi trong khung **[ẢNH x.y]**, lưu vào `docs/reports/ima
 
 | ☐ | Ảnh | Nội dung | Chụp tại | File |
 |---|---|---|---|---|
-| ☐ | 2.1 | Danh sách 4 EC2 đang chạy | **EC2 → Instances** (lọc tag `Project = prom-monitoring`) | `images/w2-01-ec2-list.png` |
-| ☐ | 2.2 | IAM role và tag của một máy target | **EC2 → Instances → web-1 → tab Details** (phần IAM Role) và **tab Tags** | `images/w2-02-ec2-role-tags.png` |
-| ☐ | 2.3 | Metadata options của máy monitor | **CloudShell** sau khi chạy lệnh ở mục 2.2, hoặc **EC2 → monitor → Actions → Instance settings → Modify instance metadata options** | `images/w2-03-imds-hop-limit.png` |
-| ☐ | 2.4 | EBS volumes | **EC2 → Elastic Block Store → Volumes** | `images/w2-04-ebs.png` |
-| ☐ | 2.5 | node_exporter chạy và yêu cầu xác thực | **terminal SSH vào web-1** | `images/w2-05-node-exporter-status.png` |
-| ☐ | 2.6 | Các container đang chạy | **terminal SSH vào monitor**, lệnh `docker compose ps` | `images/w2-06-docker-compose-ps.png` |
-| ☐ | 2.7 | Service Discovery | **Prometheus → Status → Service Discovery → `node-aws`** (bấm *show more*) | `images/w2-07-prom-service-discovery.png` |
-| ☐ | 2.8 | Targets UP | **Prometheus → Status → Targets** | `images/w2-08-prom-targets.png` |
-| ☐ | 2.9 | Truy vấn PromQL | **Prometheus → Graph**, chạy `up{job="node-aws"}` (tab Table) và `100 - (avg by (hostname) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)` (tab Graph) | `images/w2-09-prom-query.png` |
-| ☐ | 2.10 | Alert rules đã nạp | **Prometheus → Alerts** | `images/w2-10-prom-alerts.png` |
-| ☐ | 2.11 | Datasource Prometheus hoạt động | **Grafana → Connections → Data sources → Prometheus → Save & test** | `images/w2-11-grafana-datasource.png` |
-| ☐ | 2.12 | Dashboard Node Exporter Full | **Grafana → Dashboards → Node Exporter Full**, biến Job = `node-aws`, Host = web-1 | `images/w2-12-grafana-dashboard.png` |
-| ☐ | 2.13 | Giao diện Alertmanager qua SSH tunnel | trình duyệt `http://localhost:9093` (trên máy cá nhân, đang mở tunnel) | `images/w2-13-alertmanager-ui.png` |
-| ☐ | 2.14 | Cảnh báo NodeDown trên Prometheus | **Prometheus → Alerts** khoảng 1 phút sau khi stop node_exporter | `images/w2-14-prom-nodedown-firing.png` |
-| ☐ | 2.15 | Tin nhắn Slack FIRING và RESOLVED | **Slack → kênh #alerts** | `images/w2-15-slack-nodedown.png` |
-| ☐ | 2.16 | Truy cập 9100 từ Internet bị chặn | **terminal máy cá nhân** | `images/w2-16-sg-blocked.png` |
+| ☑ | 2.1 | Danh sách 4 EC2 đang chạy | **EC2 → Instances** (lọc tag `Project = prom-monitoring`) | `images/w2-01-ec2-list.png` |
+| ☑ | 2.2 | IAM role và tag của một máy target | **EC2 → Instances → web-1 → tab Details** (phần IAM Role) và **tab Tags** | `images/w2-02-ec2-role-tags.png` |
+| ☑ | 2.3 | Metadata options của máy monitor | **CloudShell** sau khi chạy lệnh ở mục 2.2, hoặc **EC2 → monitor → Actions → Instance settings → Modify instance metadata options** | `images/w2-03-imds-hop-limit.png` |
+| ☑ | 2.4 | EBS volumes | **EC2 → Elastic Block Store → Volumes** | `images/w2-04-ebs.png` |
+| ☑ | 2.5 | node_exporter chạy và yêu cầu xác thực | **terminal SSH vào web-1** | `images/w2-05-node-exporter-status.png` |
+| ☑ | 2.6 | Các container đang chạy | **terminal SSH vào monitor**, lệnh `docker compose ps` | `images/w2-06-docker-compose-ps.png` |
+| ☑ | 2.7 | Service Discovery | **Prometheus → Status → Service Discovery → `node-aws`** (bấm *show more*) | `images/w2-07-prom-service-discovery.png` |
+| ☑ | 2.8 | Targets UP | **Prometheus → Status → Targets** | `images/w2-08-prom-targets.png` |
+| ☑ | 2.9 | Truy vấn PromQL | **Prometheus → Graph**, chạy `up{job="node-aws"}` (tab Table) và `100 - (avg by (hostname) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)` (tab Graph) | `images/w2-09-prom-query.png` |
+| ☑ | 2.10 | Alert rules đã nạp | **Prometheus → Alerts** | `images/w2-10-prom-alerts.png` |
+| ☑ | 2.11 | Datasource Prometheus hoạt động | **Grafana → Connections → Data sources → Prometheus → Save & test** | `images/w2-11-grafana-datasource.png` |
+| ☑ | 2.12 | Dashboard Node Exporter Full | **Grafana → Dashboards → Node Exporter Full**, biến Job = `node-aws`, Host = web-1 | `images/w2-12-grafana-dashboard.png` |
+| ☑ | 2.13 | Giao diện Alertmanager qua SSH tunnel | trình duyệt `http://localhost:9093` (trên máy cá nhân, đang mở tunnel) | `images/w2-13-alertmanager-ui.png` |
+| ☑ | 2.14 | Cảnh báo NodeDown trên Prometheus | **Prometheus → Alerts** khoảng 1 phút sau khi stop node_exporter | `images/w2-14-prom-nodedown-firing.png` |
+| ☑ | 2.15 | Tin nhắn Slack FIRING và RESOLVED | **Slack → kênh #alerts** | `images/w2-15-slack-nodedown.png` |
+| ☑ | 2.16 | Truy cập 9100 từ Internet bị chặn | **terminal máy cá nhân** | `images/w2-16-sg-blocked.png` |
 
 ### Tuần 3
 

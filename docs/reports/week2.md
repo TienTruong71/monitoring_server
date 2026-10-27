@@ -161,6 +161,8 @@ printf 'GF_SECURITY_ADMIN_PASSWORD=%s\nPROM_WEB_PASS=%s\n' "$GRAFANA_PASS" "$PRO
 
 Các đường dẫn trên đã nằm trong [`.gitignore`](../../.gitignore) nên không có sẵn sau khi clone và phải tạo lại trên server.
 
+Các bước trên được gom vào [`scripts/setup_secrets.sh`](../../scripts/setup_secrets.sh): đặt 4 biến môi trường rồi chạy `./scripts/setup_secrets.sh`. Script dừng ngay nếu thiếu biến hoặc thiếu `python3-bcrypt`, và đặt quyền `600` cho `.env`.
+
 ### 4.3 Khởi chạy
 
 ```bash

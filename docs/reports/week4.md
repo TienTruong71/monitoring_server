@@ -1,7 +1,7 @@
 # Báo cáo Tuần 4 – Kiểm thử tổng thể, so sánh, chi phí, dọn dẹp
 
 **Đề tài:** Hệ thống giám sát mã nguồn mở Prometheus + Grafana trên AWS (Nhóm: Infrastructure)
-**Thời gian:** ……/……/2026 – ……/……/2026
+**Thời gian:** 17/10/2026 – 20/10/2026 (kế hoạch ban đầu 10/10 – 16/10/2026, nhóm triển khai trễ và làm dồn)
 **Thành viên:** Trương Thành Tiến – MSSV 22110245 · Lê Nguyễn Thiên Phúc – MSSV ………
 **Region:** us-east-1 · **Account ID:** 1574-3594-8217
 
@@ -26,7 +26,7 @@
 | TC04 | CPU cao | `stress-ng --cpu 2` trên web-1 | Slack HighCPUUsage; email SNS | ☑ Đạt | 4.4, 4.5 |
 | TC05 | RAM cao | `stress-ng --vm 1 --vm-bytes 92%` trên web-2 | Slack HighRAMUsage; email SNS | ☐ Chưa kiểm thử | – |
 | TC06 | Disk đầy | `fallocate` đến khi ổ còn trống 10% trên db-1 | Slack HighDiskUsage | ☐ Chưa kiểm thử | – |
-| TC07 | Resolved | Dừng stress, bật lại node_exporter | Slack RESOLVED; email OK | ☑ Đạt | 4.3, 4.6 |
+| TC07 | Resolved | Dừng stress, bật lại node_exporter | Slack RESOLVED (email OK không chụp minh chứng) | ☑ Đạt | 4.3, 4.6 |
 | TC08 | Inhibit | Gửi 2 alert cùng `alertname` + `instance` (critical và warning) bằng `amtool` | Chỉ alert critical được gửi, warning bị chặn | ☑ Đạt | 4.6 |
 | TC09 | Khởi động lại monitor | `sudo reboot` máy monitor | Container tự chạy lại, dữ liệu cũ còn | ☑ Đạt | 4.7 |
 | TC10 | Bảo mật | `curl` tới 9100 của target, 9093 và 9090 của monitor không mật khẩu | Timeout / timeout / 401 | ☑ Đạt | 4.8 |
@@ -132,7 +132,7 @@ curl -s -o NUL -w "%{http_code}" http://13.218.170.8:9090/api/v1/targets
 
 | Kiểm tra | Kết quả | Lý do |
 |---|---|---|
-| node_exporter của web-1 qua Internet | `Connection timed out` | `sg-target` chỉ mở 9100 cho `monitor-sg` |
+| node_exporter của web-1 qua Internet | `Connection timed out` | `target-sg` chỉ mở 9100 cho `monitor-sg` |
 | Alertmanager qua Internet | `Connection timed out` | Bind `127.0.0.1`, `monitor-sg` không mở 9093 |
 | Prometheus không mật khẩu | `401` | Basic auth bằng `web.yml` |
 
@@ -219,7 +219,7 @@ Thứ tự dọn dẹp sau khi hoàn tất đề tài (tài nguyên phụ thuộ
 
 | # | Tài nguyên | Thao tác | Trạng thái |
 |---|---|---|---|
-| 1 | CloudFormation stack `prom-monitoring` | `aws cloudformation delete-stack --stack-name prom-monitoring` | ☑ Đã xóa, 4 máy của stack Terminated (Hình 4.2) |
+| 1 | CloudFormation stack `prom-monitoring` | `aws cloudformation delete-stack --stack-name prom-monitoring` | ☑ Đã xóa, máy monitor và web-2 của stack ở trạng thái Terminated (Hình 4.2) |
 | 2 | CloudWatch Alarms | CloudWatch → Alarms → chọn tất cả → Delete | ☐ |
 | 3 | CloudWatch Dashboard | Dashboards → Delete | ☐ |
 | 4 | SNS topic + subscription | SNS → Topics → Delete | ☐ |
@@ -265,15 +265,16 @@ Kiểm tra cuối cùng bằng **Resource Groups & Tag Editor**, tìm tag `Proje
 
 | Ngày | Thành viên | Công việc | Số giờ |
 |---|---|---|---|
-| ……/…… | Trương Thành Tiến | Kiểm thử TC01, TC02 (service discovery, stop instance) | 1.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Kiểm thử TC08, TC09 (inhibit bằng amtool, reboot máy monitor) | 1.5 |
-| ……/…… | Trương Thành Tiến | Kiểm thử TC10, tổng hợp kết quả TC03, TC04, TC07 từ tuần 3 | 1.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Thu thập chi phí Learner Lab, Cost Explorer, Billing; ước tính chi phí 24/7 | 2 |
-| ……/…… | Trương Thành Tiến | Xóa stack CloudFormation, lập kế hoạch dọn dẹp tài nguyên | 1.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Hoàn thiện bảng so sánh Prometheus và CloudWatch | 1.5 |
-| ……/…… | Trương Thành Tiến | Viết kết luận, hạn chế và hướng phát triển | 3.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Rà soát và hoàn thiện báo cáo 4 tuần, danh sách sản phẩm nộp | 3 |
-| | | **Tổng Trương Thành Tiến** | **8** |
-| | | **Tổng Lê Nguyễn Thiên Phúc** | **8** |
+| 17/10/2026 | Trương Thành Tiến | Kiểm thử TC01, TC02 (service discovery, stop instance) | 0.5 |
+| 17/10/2026 | Lê Nguyễn Thiên Phúc | Kiểm thử TC08, TC09 (inhibit bằng amtool, reboot máy monitor) | 0.5 |
+| 17/10/2026 | Trương Thành Tiến | Kiểm thử TC10 (bảo mật mạng) | 0.25 |
+| 17/10/2026 | Lê Nguyễn Thiên Phúc | Chụp chi phí Learner Lab, Cost Explorer, Billing | 0.5 |
+| 19/10/2026 | Lê Nguyễn Thiên Phúc | Ước tính chi phí 24/7, hoàn thiện bảng so sánh Prometheus và CloudWatch | 2.5 |
+| 20/10/2026 | Trương Thành Tiến | Viết kết luận, hạn chế và hướng phát triển | 3 |
+| 20/10/2026 | Lê Nguyễn Thiên Phúc | Rà soát và hoàn thiện báo cáo 4 tuần, danh sách sản phẩm nộp | 1.5 |
+| | | **Tổng Trương Thành Tiến** | **3.75** |
+| | | **Tổng Lê Nguyễn Thiên Phúc** | **5** |
 
-**Tổng 4 tuần:** Trương Thành Tiến 32 giờ · Lê Nguyễn Thiên Phúc 32 giờ
+**Tổng 4 tuần:** Trương Thành Tiến 25.25 giờ · Lê Nguyễn Thiên Phúc 27.75 giờ
+
+Ghi chú về thời gian: theo kế hoạch tuần 4 là 10/10 – 16/10/2026, nhưng nhóm triển khai trễ. Các test case trên AWS làm dồn trong phiên Learner Lab chiều 17/10/2026 (cùng phiên với phần lab tuần 3, hai thành viên ngồi làm chung); phần chi phí, so sánh và kết luận làm ngày 19–20/10/2026. Số giờ là thời gian thực tế, thấp hơn mức 8 giờ/người/tuần của kế hoạch. Ngày trong worklog này được cập nhật vào file ngày 30/10/2026.

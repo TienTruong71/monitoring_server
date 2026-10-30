@@ -1,7 +1,7 @@
 # Báo cáo Tuần 3 – Tích hợp, bảo mật, giám sát CloudWatch, tự động hóa
 
 **Đề tài:** Hệ thống giám sát mã nguồn mở Prometheus + Grafana trên AWS (Nhóm: Infrastructure)
-**Thời gian:** ……/……/2026 – ……/……/2026
+**Thời gian:** 16/10/2026 – 18/10/2026 (kế hoạch ban đầu 03/10 – 09/10/2026, nhóm triển khai trễ và làm dồn)
 **Thành viên:** Trương Thành Tiến – MSSV 22110245 · Lê Nguyễn Thiên Phúc – MSSV ………
 **Region:** us-east-1 · **Account ID:** 1574-3594-8217
 
@@ -226,9 +226,9 @@ sudo apt update && sudo apt install -y stress-ng htop
 | Kịch bản | Máy | Bắt đầu | Slack (Prometheus) | Email (CloudWatch) | Độ trễ Prometheus | Độ trễ CloudWatch |
 |---|---|---|---|---|---|---|
 | CPU 100% | web-1 | 14:37:22 | 14:43 | 14:44:07 | ≈ 5 phút 40 giây | ≈ 6 phút 45 giây |
-| RAM > 90% | web-2 | ..:..:.. | ..:..:.. | ..:..:.. | … | … |
-| Dừng node_exporter | db-1 | ..:..:.. | 14:55 | *không báo* | … | – |
-| Hết sự cố (resolved / OK) | web-1 | 14:47:22 | ..:..:.. | ..:..:.. | … | … |
+| RAM > 90% | web-2 | chưa thực hiện | – | – | – | – |
+| Dừng node_exporter | db-1 | không ghi lại | 14:55 | *không báo* | – | – |
+| Hết sự cố (resolved / OK) | web-1 | 14:47:22 | không ghi lại | không ghi lại | – | – |
 
 Phân tích kịch bản CPU:
 
@@ -254,7 +254,7 @@ Phân tích kịch bản CPU:
 
 ![Hình 3.14](images/w3-14-slack-highram.png)
 
-*Hình 3.14: Slack nhận HighRAMUsage của web-2*
+*Hình 3.14: Kênh Slack lúc kiểm thử: NodeDown web-1 và HighCPUUsage (kịch bản RAM chưa thực hiện, xem TC05 tuần 4)*
 
 ![Hình 3.15](images/w3-15-cw-statuscheck-ok.png)
 
@@ -264,7 +264,7 @@ Phân tích kịch bản CPU:
 
 | Lớp | Biện pháp | Minh chứng |
 |---|---|---|
-| Mạng | Port 9100 chỉ mở cho sg-monitor; 22/2404/9090 chỉ mở cho IP cá nhân `/32` | Hình 1.6, 1.7, 2.16 |
+| Mạng | Port 9100 chỉ mở cho monitor-sg; 22/2404/9090 chỉ mở cho IP cá nhân `/32` | Hình 2.16 |
 | Mạng | Prometheus scrape qua private IP trong VPC | Hình 2.8 |
 | Xác thực | node_exporter và Prometheus dùng basic auth (bcrypt) | Hình 2.5 |
 | Xác thực | Grafana đổi mật khẩu admin qua `.env` | – |
@@ -287,7 +287,7 @@ Tuần 1–3, hạ tầng được tạo thủ công trên console nên mất nh
 |---|---|---|
 | Mạng | VPC `10.20.0.0/16`, public subnet `10.20.1.0/24`, Internet Gateway, route table | Tách riêng khỏi VPC mặc định |
 | Bảo mật | `prom-monitor-sg`: 22, 2404, 9090 chỉ từ `MyIp` | Giống `monitor-sg` |
-| | `prom-target-sg`: 22 từ `MyIp`; 9100 chỉ từ `prom-monitor-sg` | Giống `sg-target` |
+| | `prom-target-sg`: 22 từ `MyIp`; 9100 chỉ từ `prom-monitor-sg` | Giống `target-sg` |
 | Launch template | Monitor: t3.medium, 20 GB gp3, IMDSv2 bắt buộc, **hop limit 2** | User data cài Docker, Compose, Git |
 | | Target: t3.micro, 8 GB gp3, Detailed Monitoring theo tham số | User data cài node_exporter có basic auth, CloudWatch Agent (cấu hình giống mục 3.2), stress-ng |
 | EC2 | `monitor`, `web-1`, `web-2`, `db-1` | Đều gắn `LabInstanceProfile`, tag `Project`, `Owner`; 3 target có tag `Monitoring` |
@@ -394,16 +394,18 @@ Xóa stack sẽ xóa toàn bộ tài nguyên đã tạo (EC2, EBS, SG, VPC), tr�
 
 | Ngày | Thành viên | Công việc | Số giờ |
 |---|---|---|---|
-| ……/…… | Trương Thành Tiến | Bật Detailed Monitoring, khảo sát metric mặc định của EC2 | 1 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Cài và cấu hình CloudWatch Agent trên 3 target, xử lý lỗi `fetch-config` | 2 |
-| ……/…… | Trương Thành Tiến | Xử lý lỗi thiếu IAM role trên web-1/web-2, tạo CloudWatch Dashboard bằng CLI | 2 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Tạo SNS topic + email subscription, tạo 9 CloudWatch Alarm | 2 |
-| ……/…… | Trương Thành Tiến | Tích hợp datasource CloudWatch vào Grafana, dựng dashboard so sánh | 1.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Chạy stress-ng CPU/RAM, dừng node_exporter, ghi mốc thời gian | 2 |
-| ……/…… | Trương Thành Tiến | Viết template CloudFormation, triển khai, kiểm tra và xóa stack | 3.5 |
-| ……/…… | Lê Nguyễn Thiên Phúc | Rà soát bảo mật, phân tích độ trễ, tổng hợp khó khăn, viết báo cáo tuần 3 | 2 |
-| | | **Tổng Trương Thành Tiến** | **8** |
-| | | **Tổng Lê Nguyễn Thiên Phúc** | **8** |
+| 16/10/2026 | Trương Thành Tiến | Tích hợp datasource CloudWatch vào Grafana, dựng dashboard so sánh | 3 |
+| 17/10/2026 | Trương Thành Tiến | Bật Detailed Monitoring, khảo sát metric mặc định của EC2 | 0.5 |
+| 17/10/2026 | Lê Nguyễn Thiên Phúc | Cài và cấu hình CloudWatch Agent trên 3 target, xử lý lỗi `fetch-config` | 0.5 |
+| 17/10/2026 | Trương Thành Tiến | Xử lý lỗi thiếu IAM role trên web-1/web-2, tạo CloudWatch Dashboard bằng CLI | 0.5 |
+| 17/10/2026 | Lê Nguyễn Thiên Phúc | Tạo SNS topic + email subscription, tạo 9 CloudWatch Alarm | 0.75 |
+| 17/10/2026 | Lê Nguyễn Thiên Phúc | Chạy stress-ng CPU, dừng node_exporter, ghi mốc thời gian | 0.5 |
+| 17/10/2026 | Trương Thành Tiến | Viết template CloudFormation, triển khai, kiểm tra và xóa stack | 1 |
+| 18/10/2026 | Lê Nguyễn Thiên Phúc | Rà soát bảo mật, phân tích độ trễ, tổng hợp khó khăn, viết báo cáo tuần 3 | 4 |
+| | | **Tổng Trương Thành Tiến** | **5** |
+| | | **Tổng Lê Nguyễn Thiên Phúc** | **5.75** |
+
+Ghi chú về thời gian: theo kế hoạch tuần 3 là 03/10 – 09/10/2026, nhưng nhóm triển khai trễ. Datasource CloudWatch làm ngày 16/10/2026, phần lab còn lại làm dồn trong phiên Learner Lab chiều 17/10/2026 (hai thành viên ngồi làm chung), báo cáo hoàn chỉnh ngày 18/10/2026. Số giờ là thời gian thực tế; phần lab ngày 17/10 tính theo mốc giờ trên ảnh minh chứng. Ngày trong worklog này được cập nhật vào file ngày 30/10/2026.
 
 ## 13. Kế hoạch tuần 4
 

@@ -87,4 +87,4 @@ Chụp đúng trang ghi trong khung **[ẢNH x.y]**, lưu vào `docs/reports/ima
 | ☑ | 4.10 | Cost Explorer group by Service | **Billing and Cost Management → Cost Explorer** | `images/w4-13-cost-explorer.png` |
 | ☑ | 4.11 | Billing Home: dự báo và cost breakdown (tên file cũ là pricing-calculator) | **Billing and Cost Management → Home** | `images/w4-14-pricing-calculator.png` |
 | ☐ | – | Slack HighDiskUsage (TC06, chưa kiểm thử) | **Slack** | `chưa có` |
-| ☐ | – | EC2 đã terminate, không còn volume/VPC, Tag Editor trống (mục 5, chưa dọn xong) | **EC2**, **VPC**, **Resource Groups** | `chưa có` |
+| ☐ | – | EC2 đã terminate, không còn volume/VPC, Tag Editor trống (mục 5: đã dọn sau 20/10/2026 nhưng không chụp ảnh) | **EC2**, **VPC**, **Resource Groups** | `không có ảnh` |

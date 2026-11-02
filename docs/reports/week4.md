@@ -220,13 +220,13 @@ Thứ tự dọn dẹp sau khi hoàn tất đề tài (tài nguyên phụ thuộ
 | # | Tài nguyên | Thao tác | Trạng thái |
 |---|---|---|---|
 | 1 | CloudFormation stack `prom-monitoring` | `aws cloudformation delete-stack --stack-name prom-monitoring` | ☑ Đã xóa, máy monitor và web-2 của stack ở trạng thái Terminated (Hình 4.2) |
-| 2 | CloudWatch Alarms | CloudWatch → Alarms → chọn tất cả → Delete | ☐ |
-| 3 | CloudWatch Dashboard | Dashboards → Delete | ☐ |
-| 4 | SNS topic + subscription | SNS → Topics → Delete | ☐ |
-| 5 | 4 EC2 | EC2 → Instances → Terminate (EBS root tự xóa) | ☐ |
-| 6 | EBS volume / snapshot còn sót | EC2 → Volumes / Snapshots | ☐ |
-| 7 | S3 bucket | Empty → Delete | ☐ |
-| 8 | Security Groups, VPC | VPC → Your VPCs → Delete VPC (xóa kèm subnet, IGW, route table) | ☐ |
+| 2 | CloudWatch Alarms | CloudWatch → Alarms → chọn tất cả → Delete | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 3 | CloudWatch Dashboard | Dashboards → Delete | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 4 | SNS topic + subscription | SNS → Topics → Delete | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 5 | 4 EC2 | EC2 → Instances → Terminate (EBS root tự xóa) | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 6 | EBS volume / snapshot còn sót | EC2 → Volumes / Snapshots | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 7 | S3 bucket | Empty → Delete | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
+| 8 | Security Groups, VPC | VPC → Your VPCs → Delete VPC (xóa kèm subnet, IGW, route table) | ☑ Đã xóa sau 20/10/2026, không nhớ ngày chính xác (không chụp ảnh minh chứng) |
 
 Kiểm tra cuối cùng bằng **Resource Groups & Tag Editor**, tìm tag `Project = prom-monitoring`: kết quả phải là *No resources found*.
 

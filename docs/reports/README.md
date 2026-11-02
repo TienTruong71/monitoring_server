@@ -75,14 +75,16 @@ Chụp đúng trang ghi trong khung **[ẢNH x.y]**, lưu vào `docs/reports/ima
 
 | ☐ | Ảnh | Nội dung | Chụp tại | File |
 |---|---|---|---|---|
-| ☐ | 4.1 | Service discovery khi thay đổi tag | **Prometheus → Status → Targets** trước và sau khi gỡ tag `Monitoring` của web-2 (ghép 2 ảnh) | `images/w4-01-sd-tag-change.png` |
-| ☐ | 4.2 | Máy bị stop | **EC2 → Instances** (web-2 Stopped) và **Prometheus → Targets** cùng thời điểm | `images/w4-02-instance-stopped.png` |
-| ☐ | 4.3 | Slack HighDiskUsage | **Slack → #alerts** | `images/w4-03-slack-highdisk.png` |
-| ☐ | 4.4 | Stack tự khôi phục sau reboot | **terminal SSH vào monitor** sau reboot, lệnh `uptime && docker compose ps` | `images/w4-04-reboot-recovery.png` |
-| ☐ | 4.5 | Kiểm thử bảo mật | **terminal máy cá nhân** | `images/w4-05-security-test.png` |
-| ☐ | 4.6 | Ngân sách đã dùng trong Learner Lab | **trang Learner Lab (AWS Academy)**, phần trên cùng bên phải *Used $x of $50* (hoặc AWS Details) | `images/w4-06-learner-lab-budget.png` |
-| ☐ | 4.7 | Chi phí theo dịch vụ (nếu Learner Lab cho phép) | **Billing and Cost Management → Cost Explorer**, group by **Service**, khoảng thời gian 4 tuần | `images/w4-07-cost-explorer.png` |
-| ☐ | 4.8 | AWS Pricing Calculator | `https://calculator.aws/` → *My Estimate* sau khi thêm EC2, EBS, CloudWatch, SNS | `images/w4-08-pricing-calculator.png` |
-| ☐ | 4.9 | EC2 đã terminate | **EC2 → Instances** (bỏ filter mặc định để thấy cả máy đã terminate) | `images/w4-09-ec2-terminated.png` |
-| ☐ | 4.10 | Không còn volume và VPC | **EC2 → Volumes** và **VPC → Your VPCs** (ghép 2 ảnh) | `images/w4-10-cleanup-ebs-vpc.png` |
-| ☐ | 4.11 | Tag Editor sau khi dọn dẹp | **Resource Groups & Tag Editor → Tag Editor**, tìm tag `Project = prom-monitoring` | `images/w4-11-tag-editor-empty.png` |
+| ☑ | 4.1 | Service discovery khi thay đổi tag (TC01) | **Prometheus → Status → Targets** trước và sau khi gỡ tag `Monitoring` của web-2 | `images/w4-01-sd-tag-change.png` |
+| ☑ | 4.2 | Máy bị stop (TC02) | **EC2 → Instances** (web-2 Stopping) và **Prometheus → Targets** | `images/w4-02-instance-stopped.png` |
+| ☑ | 4.3 | NodeDown db-1, CloudWatch vẫn OK (TC03, dùng lại ảnh tuần 3) | **CloudWatch → Alarms** và **Slack** | `images/w3-15-cw-statuscheck-ok.png` |
+| ☑ | 4.4 | Slack HighCPUUsage (TC04, dùng lại ảnh tuần 3) | **Slack** | `images/w3-11-slack-highcpu.png` |
+| ☑ | 4.5 | Email SNS ALARM web-1-HighCPU (TC04, dùng lại ảnh tuần 3) | **hộp thư email** | `images/w3-13-sns-email.png` |
+| ☑ | 4.6 | Inhibit bằng amtool (TC08) | **terminal SSH vào monitor** và **Slack** | `images/w4-09-inhibit.png` |
+| ☑ | 4.7 | Stack tự khôi phục sau reboot (TC09) | **terminal SSH vào monitor**, lệnh `uptime && docker compose ps` | `images/w4-10-reboot-recovery.png` |
+| ☑ | 4.8 | Kiểm thử bảo mật mạng (TC10) | **terminal máy cá nhân** | `images/w4-11-security-test.png` |
+| ☑ | 4.9 | Ngân sách Learner Lab | **trang Learner Lab**, AWS Details | `images/w4-12-learner-lab-budget.png` |
+| ☑ | 4.10 | Cost Explorer group by Service | **Billing and Cost Management → Cost Explorer** | `images/w4-13-cost-explorer.png` |
+| ☑ | 4.11 | Billing Home: dự báo và cost breakdown (tên file cũ là pricing-calculator) | **Billing and Cost Management → Home** | `images/w4-14-pricing-calculator.png` |
+| ☐ | – | Slack HighDiskUsage (TC06, chưa kiểm thử) | **Slack** | `chưa có` |
+| ☐ | – | EC2 đã terminate, không còn volume/VPC, Tag Editor trống (mục 5, chưa dọn xong) | **EC2**, **VPC**, **Resource Groups** | `chưa có` |
